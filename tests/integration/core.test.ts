@@ -969,7 +969,7 @@ describe("续上本地核心", () => {
 
   it("C25 stop.sh 全角括号前用 ${PID}，避免 bash 3.2 set -u 退出码 1", () => {
     const sh = readFileSync("scripts/stop.sh", "utf8");
-    expect(sh).toContain("已停止续上（进程 ${PID}）。");
+    expect(sh).toContain("已停止 CarryOn（进程 ${PID}）。");
     expect(sh.includes("进程 $PID）。")).toBe(false);
   });
 });

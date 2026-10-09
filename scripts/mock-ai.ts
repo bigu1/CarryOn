@@ -66,7 +66,7 @@ createServer((req, res) => {
           body: parsed.handoffBody ?? "润色后的正文，未添加新事实。",
         });
         res.writeHead(200, { "content-type": "application/json" }).end(
-          JSON.stringify({ model: "mock-xushang", choices: [{ message: { content } }] }),
+          JSON.stringify({ model: "mock-carryon", choices: [{ message: { content } }] }),
         );
       } catch {
         res.writeHead(500).end("{}");

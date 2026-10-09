@@ -60,7 +60,7 @@ test("空库到导入、搜索、打开原文，刷新后仍在", async ({ page 
   await expect(page.locator(".msg-text", { hasText: "我决定首版只在本机使用。" })).toBeVisible();
 });
 
-test("选中原文建卡、替代、交接、复制下载与预览一致", async ({ page, context }) => {
+test("选中原文建卡、替代、交接、复制下载与预览一致", async ({ page, context }, testInfo) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await importPaste(page, "用户：先用甲方案存本机。\n助手：建议考虑乙方案。", "e2e 选型");
   await page.getByRole("link", { name: "打开资料，开始整理" }).click();
@@ -105,6 +105,7 @@ test("选中原文建卡、替代、交接、复制下载与预览一致", async
   const text = fs.readFileSync(path!, "utf8");
   expect(text).toBe(await editor.inputValue());
   expect(text).toContain("人工补一句");
+  await page.screenshot({ path: testInfo.outputPath("handoff.png") });
 });
 
 test("中文 emoji 重复摘录：第二处选中、建卡、精确回跳并返回主题", async ({ page }, testInfo) => {

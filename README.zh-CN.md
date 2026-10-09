@@ -1,6 +1,8 @@
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# 续上 · Xushang
+# CarryOn · 续上
+
+**找回原话，核对决定，让讨论接着进行。**
 
 把自己选择导入的旧聊天，整理成能回溯的决定、还没解决的问题，以及交给下一次讨论的背景。让下一次可以接着聊。
 
@@ -15,8 +17,8 @@
 需要 **Node.js 22.14.0 或更新版本**、npm，以及 macOS 或 Linux。自动检查覆盖 Node 22 / 24。数据库使用 Node 内置 SQLite。
 
 ```sh
-git clone https://github.com/bigu1/xushang.git
-cd xushang
+git clone https://github.com/bigu1/CarryOn.git
+cd CarryOn
 npm ci
 npm run build
 sh scripts/start.sh
@@ -53,6 +55,12 @@ XUSHANG_DATA_DIR=./local-data sh scripts/stop.sh
 - 删除来源会清除应用可见正文、使派生内容和迟到结果失效。已下载的文件和恢复前快照不会自动被回收；不承诺磁盘取证级擦除。
 - 引用会校验范围和逐字匹配，但有引用不等于模型解释正确，仍需人工核对。
 
+## 名称、兼容与署名
+
+英文产品名是 **CarryOn**，中文名是 **续上**；仓库和包名使用 CarryOn / `carryon`。旧 `xushang.db`、`xushang-backup`、Cookie 和 `XUSHANG_*` 环境变量保留为数据与协议兼容标识，已有库和备份继续可用；它们不代表另一个产品名。
+
+版权与公开提交归属为 **bigu1**。提交使用该账号的 GitHub 隐私邮箱，避免公开真实邮箱。
+
 ## 检查与代码位置
 
 ```sh
@@ -69,7 +77,7 @@ npm run check:public
 
 `src/client/` 是界面与组件；`src/server/routes/` 是 HTTP 边界；`src/domain/` 是卡片与交接规则；`src/importers/` 是导入预览；`src/search/` 是字面检索；`src/ai/` 是发送计划和模型任务；`src/storage/` 是 SQLite、删除和备份替换。
 
-阅读[原始产品合同](docs/specification/01-产品与实现方案.md)、[当前验收证据](docs/ACCEPTANCE.md)、[运行说明](docs/RUNBOOK.md)和[安全说明](SECURITY.md)。公开仓库与发行包包含源码、测试、合成样例和文档，不含个人资料库或旧私人 Git 历史。
+阅读[原始产品合同](docs/specification/01-产品与实现方案.md)、[当前验收证据](docs/ACCEPTANCE.md)、[运行说明](docs/RUNBOOK.md)和[安全说明](SECURITY.md)及[隐私与署名复核](docs/PRIVACY_AUDIT.md)。公开仓库与发行包包含源码、测试、合成样例和文档，不含个人资料库或旧私人 Git 历史。
 
 ## 参与开发与许可
 

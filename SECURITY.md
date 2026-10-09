@@ -1,6 +1,6 @@
 # Security and privacy
 
-Xushang is a single-user loopback application. Keep it on your own computer; there is no account-based authentication for remote deployment.
+CarryOn is a single-user loopback application. Keep it on your own computer; there is no account-based authentication for remote deployment.
 
 Do not post chats, backups, screenshots with private content, credentials or machine-specific paths in issues. Use GitHub's private vulnerability reporting on this repository for suspected security defects. Include a minimal synthetic reproducer, affected version, and expected versus actual behavior.
 

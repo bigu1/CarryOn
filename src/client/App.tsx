@@ -13,6 +13,7 @@ import { HandoffPage } from "./pages/HandoffPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { Loading, Notice } from "./ui/kit";
 import { ShellContext } from "./ui/shell";
+import { APP_NAME, APP_NAME_ZH, APP_DISPLAY_NAME } from "../shared/brand";
 
 
 const NAV: Array<{ title?: string; links: Array<{ to: string; label: string; end?: boolean; count?: boolean }> }> = [
@@ -60,8 +61,8 @@ export function App() {
     return (
       <main className="main">
         <div className="page narrow">
-          <Notice tone="bad" title="续上打不开">
-            {err}。请确认「启动续上」窗口还开着，然后刷新页面。
+          <Notice tone="bad" title={`${APP_DISPLAY_NAME} 打不开`}>
+            {err}。请确认 CarryOn 启动窗口还开着，然后刷新页面。
           </Notice>
         </div>
       </main>
@@ -82,9 +83,9 @@ export function App() {
         <nav className="side" aria-label="主导航">
           <div className="brand">
             <NavLink to="/" className="brand-name">
-              <span className="brand-mark" aria-hidden="true">↳</span>续上
+              <span className="brand-mark" aria-hidden="true">↳</span>{APP_NAME}
             </NavLink>
-            <p className="brand-sub">资料保存在这台电脑上</p>
+            <p className="brand-sub">{APP_NAME_ZH} · 让讨论接着进行</p>
           </div>
           {NAV.map((g, i) => (
             <div className="nav-group" key={i}>

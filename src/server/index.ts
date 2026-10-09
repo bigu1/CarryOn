@@ -33,7 +33,7 @@ async function main() {
   const dist = join(process.cwd(), "dist");
   const hostname = process.env.XUSHANG_HOST ?? "127.0.0.1";
   if (hostname !== "127.0.0.1" && hostname !== "localhost") {
-    console.error("续上默认只监听本机回环地址。拒绝绑定", hostname);
+    console.error("CarryOn（续上）默认只监听本机回环地址。拒绝绑定", hostname);
     process.exit(1);
   }
 
@@ -67,7 +67,7 @@ async function main() {
 
 function onListen(runtime: Runtime, port: number) {
   const url = `http://127.0.0.1:${port}`;
-  console.log(`续上已打开：${url}`);
+  console.log(`CarryOn（续上）已打开：${url}`);
   console.log(`资料目录：${runtime.dataRoot}`);
   const pidFile = process.env.XUSHANG_PID_FILE ?? join(runtime.dataRoot, "xushang.pid");
   const portFile = process.env.XUSHANG_PORT_FILE ?? join(runtime.dataRoot, "xushang.port");

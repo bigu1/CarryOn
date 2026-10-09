@@ -1,8 +1,8 @@
 {
-  "name": "xushang",
-  "version": "1.0.0-beta.2",
+  "name": "carryon",
+  "version": "1.0.0-beta.3",
   "private": true,
-  "description": "续上：把旧聊天整理成可追溯的决定和交接背景",
+  "description": "CarryOn · 续上：找回原话，核对决定，让讨论接着进行",
   "type": "module",
   "engines": {
     "node": ">=22.14.0"

@@ -4,13 +4,13 @@ ROOT=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
 
 if ! command -v node >/dev/null 2>&1; then
-  echo "没有找到 Node.js。请先安装 22 或以上版本，再重新打开「启动续上」。不要改系统 PATH 以外的全局设置。"
+  echo "没有找到 Node.js。请先安装 22 或以上版本，再重新打开「启动 CarryOn」。不要改系统 PATH 以外的全局设置。"
   exit 1
 fi
 
 NODE_MAJOR=$(node -p "process.versions.node.split('.')[0]")
 if [ "$NODE_MAJOR" -lt 22 ]; then
-  echo "当前 Node 是 $(node -v)，续上需要 22 或以上。"
+  echo "当前 Node 是 $(node -v)，CarryOn 需要 22 或以上。"
   exit 1
 fi
 
@@ -32,7 +32,7 @@ if [ -f "$PID_FILE" ]; then
     if node "$ROOT/scripts/instance-owner.mjs" "$OLD" "$ROOT" "$PID_FILE"; then
       OLDPORT=$(cat "$PORT_FILE" 2>/dev/null || true)
       OLDPORT="${OLDPORT:-${XUSHANG_PORT:-43173}}"
-      echo "续上已在运行：http://127.0.0.1:$OLDPORT"
+      echo "CarryOn（续上）已在运行：http://127.0.0.1:$OLDPORT"
       exit 0
     fi
   fi
@@ -79,12 +79,12 @@ while [ "$TRIES" -lt 20 ]; do
 done
 
 if [ "$STARTED" -ne 1 ]; then
-  echo "找不到可用端口，续上没有启动。占用原端口的程序未被结束。"
+  echo "找不到可用端口，CarryOn 没有启动。占用原端口的程序未被结束。"
   exit 1
 fi
 
 URL="http://127.0.0.1:$PORT"
-echo "续上已打开：$URL"
+echo "CarryOn（续上）已打开：$URL"
 if [ "${XUSHANG_NO_OPEN:-0}" = "1" ]; then
   :
 elif command -v xdg-open >/dev/null 2>&1; then

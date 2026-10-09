@@ -1,6 +1,8 @@
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-# Xushang · 续上
+# CarryOn · 续上
+
+**Find the source. Review the decision. Carry the context forward.**
 
 Continue where the last conversation left off. Turn chats you choose to import into traceable decisions, open questions, and an editable handoff for the next conversation.
 
@@ -15,8 +17,8 @@ This is an early public beta. The local workflows have been tested with syntheti
 Requires Node.js **22.14.0 or newer**, npm, and macOS or Linux. Automated checks cover Node 22 and 24. The application uses Node's built-in SQLite.
 
 ```sh
-git clone https://github.com/bigu1/xushang.git
-cd xushang
+git clone https://github.com/bigu1/CarryOn.git
+cd CarryOn
 npm ci
 npm run build
 sh scripts/start.sh
@@ -53,6 +55,12 @@ XUSHANG_DATA_DIR=./local-data sh scripts/stop.sh
 - A source deletion clears app-visible text and invalidates dependent content and late model results. Previously downloaded files and pre-restore snapshots cannot be recalled automatically. This is not forensic disk erasure.
 - Citations are checked for scope and literal text. That does not prove a model's interpretation is correct; human review remains necessary.
 
+## Naming and compatibility
+
+The English product name is **CarryOn**; the Chinese name is **续上**. The repository and package use CarryOn / `carryon`. Older `xushang.db`, `xushang-backup`, cookies and `XUSHANG_*` environment variables remain supported storage/protocol identifiers so an existing library and backup keep working. They are not a second product name.
+
+Copyright and public commit attribution belong to **bigu1**. Commits use the account's GitHub-provided no-reply address to protect the real email address.
+
 ## Checks and project map
 
 ```sh
@@ -69,7 +77,7 @@ Browser tests create a fresh temporary library on a separate port and refuse the
 
 `src/client/` holds the interface and reusable components; `src/server/routes/` the HTTP boundaries; `src/domain/` card and handoff rules; `src/importers/` preview parsing; `src/search/` literal search; `src/ai/` send plans and model jobs; `src/storage/` SQLite, deletion and validated backup replacement.
 
-Read the [original product contract](docs/specification/01-产品与实现方案.md), [current acceptance evidence](docs/ACCEPTANCE.md), [runbook](docs/RUNBOOK.md), and [security policy](SECURITY.md). The repository and release contain source, tests, synthetic fixtures and documentation, never a personal library or previous private Git history.
+Read the [original product contract](docs/specification/01-产品与实现方案.md), [current acceptance evidence](docs/ACCEPTANCE.md), [runbook](docs/RUNBOOK.md), and [security policy](SECURITY.md), and [privacy and attribution audit](docs/PRIVACY_AUDIT.md). The repository and release contain source, tests, synthetic fixtures and documentation, never a personal library or previous private Git history.
 
 ## Contributing and license
 

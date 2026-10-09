@@ -1,4 +1,5 @@
 import { setCookie } from "hono/cookie";
+import { APP_NAME, APP_NAME_ZH } from "../../shared/brand.js";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { LIMITS } from "../../shared/limits.js";
@@ -12,7 +13,7 @@ import { errMessage, lib, router, rt, storeOf } from "../ctx.js";
 
 export const libraryRoutes = router();
 
-libraryRoutes.get("/api/health", (c) => c.json({ ok: true, name: "续上", library: lib(c), time: nowIso() }));
+libraryRoutes.get("/api/health", (c) => c.json({ ok: true, name: APP_NAME, chineseName: APP_NAME_ZH, library: lib(c), time: nowIso() }));
 
 libraryRoutes.get("/api/session", (c) => {
   const s = ensureSession(c);
@@ -86,7 +87,7 @@ libraryRoutes.get("/api/data", (c) =>
 libraryRoutes.get("/api/backup", (c) => {
   const pack = buildBackup(storeOf(c), lib(c));
   return c.json(pack, 200, {
-    "content-disposition": `attachment; filename="xushang-${lib(c)}-${Date.now()}.json"`,
+    "content-disposition": `attachment; filename="carryon-${lib(c)}-${Date.now()}.json"`,
   });
 });
 

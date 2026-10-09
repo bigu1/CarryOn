@@ -1,6 +1,6 @@
 # 首版逐项验收证据
 
-2026-10-09，`1.0.0-beta.2`。PASS 仅表示这里列出的当前代码与合成场景通过；不表示未知缺陷为零，也不代表真实聊天价值或真实模型质量已通过。原始要求仍见 [规格](specification/02-验收与交付要求.md)。
+2026-10-09，`1.0.0-beta.3`。PASS 仅表示这里列出的当前代码与合成场景通过；不表示未知缺陷为零，也不代表真实聊天价值或真实模型质量已通过。原始要求仍见 [规格](specification/02-验收与交付要求.md)。
 
 可重跑的集成用例：[core](../tests/integration/core.test.ts)、[F01–F09](../tests/integration/fxx-regression.test.ts)、[整改回归](../tests/integration/rework.test.ts)、[发布边界](../tests/integration/public-release.test.ts)、[模拟 AI](../tests/integration/ai.test.ts)。浏览器用例：[主流程](../tests/e2e/flows.spec.ts)、[模拟模型与备份](../tests/e2e/model-and-backup.spec.ts)、[视口](../tests/e2e/viewports.spec.ts)。测试只创建新的临时库。
 
