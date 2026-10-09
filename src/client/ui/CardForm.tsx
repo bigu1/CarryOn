@@ -20,7 +20,7 @@ export function TypeOptions({ includeNote = true }: { includeNote?: boolean }) {
   );
 }
 
-/** 从原文选中的一段建卡。引用由服务端按摘录重新定位并校验。 */
+/** 选中位置按 Unicode 码点传递，由服务端对原文和位置一起校验。 */
 export function CardFormDialog({
   open,
   onClose,
@@ -29,6 +29,8 @@ export function CardFormDialog({
   messageId,
   quote,
   role,
+  startCp,
+  endCp,
 }: {
   open: boolean;
   onClose: () => void;
@@ -37,6 +39,8 @@ export function CardFormDialog({
   messageId?: string;
   quote?: string;
   role?: string;
+  startCp?: number;
+  endCp?: number;
 }) {
   const [type, setType] = useState("user_decision");
   const [title, setTitle] = useState("");
@@ -61,7 +65,7 @@ export function CardFormDialog({
         title,
         body,
         isUserNote: isNote,
-        citations: !isNote && messageId && quote ? [{ messageId, quote }] : [],
+        citations: !isNote && messageId && quote ? [{ messageId, quote, startCp, endCp }] : [],
       }),
     );
     if (r) onSaved(r.card);

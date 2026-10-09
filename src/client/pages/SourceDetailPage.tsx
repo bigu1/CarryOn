@@ -6,11 +6,14 @@ import { CardFormDialog } from "../ui/CardForm";
 import { useAction, useLoad } from "../ui/hooks";
 import { Badge, Button, Dialog, ErrorText, Loading, Notice, PageHeader, Panel, TextInput } from "../ui/kit";
 import { formatTime, ROLE_LABEL, ROLE_OPTIONS, roleLabel, sourceDate } from "../ui/labels";
+import { sliceCp } from "../../shared/unicode";
 
 type Msg = { id: string; role: string; original_label: string; text: string; seq: number };
 
-function MessageText({ text, quote }: { text: string; quote: string }) {
-  const at = quote ? text.indexOf(quote) : -1;
+function MessageText({ text, quote, startCp, endCp }: { text: string; quote: string; startCp: number | null; endCp: number | null }) {
+  const hasPosition = startCp !== null || endCp !== null;
+  const validPosition = Number.isInteger(startCp) && Number.isInteger(endCp) && startCp! >= 0 && endCp! > startCp! && endCp! <= Array.from(text).length && sliceCp(text, startCp!, endCp!) === quote;
+  const at = hasPosition ? validPosition ? sliceCp(text, 0, startCp!).length : -1 : quote ? text.indexOf(quote) : -1;
   if (at < 0) return <div className="msg-text">{text}</div>;
   return (
     <div className="msg-text">
@@ -28,6 +31,8 @@ export function SourceDetailPage() {
   const shell = useShell();
   const target = sp.get("msg");
   const quote = sp.get("quote") ?? "";
+  const startCp = sp.has("startCp") ? Number(sp.get("startCp")) : null;
+  const endCp = sp.has("endCp") ? Number(sp.get("endCp")) : null;
   const revision = sp.get("revision") ?? "";
   const from = sp.get("from") ?? "";
   const path = id ? `/api/sources/${id}${revision ? `?revision=${encodeURIComponent(revision)}` : ""}` : null;
@@ -39,8 +44,8 @@ export function SourceDetailPage() {
   const [meta, setMeta] = useState({ title: "", topicLabel: "", occurredAt: "" });
   const [deleting, setDeleting] = useState(false);
   const [impact, setImpact] = useState<Record<string, number> | null>(null);
-  const [selection, setSelection] = useState<{ messageId: string; quote: string; role: string } | null>(null);
-  const [cardFor, setCardFor] = useState<{ messageId?: string; quote?: string; role?: string } | null>(null);
+  const [selection, setSelection] = useState<{ messageId: string; quote: string; role: string; startCp: number; endCp: number } | null>(null);
+  const [cardFor, setCardFor] = useState<{ messageId?: string; quote?: string; role?: string; startCp?: number; endCp?: number } | null>(null);
   const [saved, setSaved] = useState("");
   const act = useAction();
 
@@ -70,7 +75,17 @@ export function SourceDetailPage() {
       if (!a || a !== f) return setSelection(null);
       const msg = messages.find((m) => m.id === a.getAttribute("data-msg"));
       if (!msg || !msg.text.includes(text)) return setSelection(null);
-      setSelection({ messageId: msg.id, quote: text, role: msg.role });
+      const range = sel.getRangeAt(0);
+      const textElement = a.querySelector(".msg-text");
+      if (!textElement?.contains(range.startContainer) || !textElement.contains(range.endContainer)) return setSelection(null);
+      const prefix = document.createRange();
+      prefix.selectNodeContents(textElement);
+      prefix.setEnd(range.startContainer, range.startOffset);
+      const raw = range.toString();
+      const startCp = Array.from(prefix.toString()).length + Array.from(raw.slice(0, raw.length - raw.trimStart().length)).length;
+      const endCp = startCp + Array.from(text).length;
+      if (sliceCp(msg.text, startCp, endCp) !== text) return setSelection(null);
+      setSelection({ messageId: msg.id, quote: text, role: msg.role, startCp, endCp });
     };
     document.addEventListener("mouseup", onUp);
     document.addEventListener("keyup", onUp);
@@ -219,11 +234,11 @@ export function SourceDetailPage() {
                 {m.original_label && m.original_label !== roleLabel(m.role) ? <small>原标签：{m.original_label}</small> : null}
               </div>
               <div data-msg={m.id}>
-                <MessageText text={m.text} quote={target === m.id ? quote : ""} />
+                <MessageText text={m.text} quote={target === m.id ? quote : ""} startCp={target === m.id ? startCp : null} endCp={target === m.id ? endCp : null} />
                 {!historical && !fixRoles ? (
                   <div className="msg-foot">
                     {cardsByMsg.get(m.id) ? <Badge tone="accent">{cardsByMsg.get(m.id)} 张卡引用</Badge> : null}
-                    <Button small tone="quiet" onClick={() => setCardFor({ messageId: m.id, quote: m.text, role: m.role })}>
+                    <Button small tone="quiet" onClick={() => setCardFor({ messageId: m.id, quote: m.text, role: m.role, startCp: 0, endCp: Array.from(m.text).length })}>
                       整段建卡
                     </Button>
                   </div>
@@ -272,6 +287,8 @@ export function SourceDetailPage() {
         messageId={cardFor?.messageId}
         quote={cardFor?.quote}
         role={cardFor?.role}
+        startCp={cardFor?.startCp}
+        endCp={cardFor?.endCp}
         onSaved={(card) => {
           setCardFor(null);
           setSelection(null);

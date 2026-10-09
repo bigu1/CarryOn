@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { get } from "../api";
 import { useShell } from "../ui/shell";
@@ -16,7 +16,7 @@ type Hits = {
   cards: Array<Record<string, any>>;
   suggestions?: Array<{ term: string; total: number }>;
 };
-type Point = { text: string; kind: string; kindLabel: string; support: Array<{ messageId: string; sourceId: string; sourceTitle: string; sourceDate: string | null; role: string; quote: string }> };
+type Point = { text: string; kind: string; kindLabel: string; support: Array<{ messageId: string; sourceId: string; sourceTitle: string; sourceDate: string | null; role: string; quote: string; startCp?: number; endCp?: number }> };
 
 export function AnswerPage() {
   const [sp, setSp] = useSearchParams();
@@ -24,17 +24,19 @@ export function AnswerPage() {
   const topics = useLoad<{ topics: Array<{ id: string; label: string }> }>("/api/topics");
   const [q, setQ] = useState(sp.get("q") ?? "");
   const [topicId, setTopicId] = useState(sp.get("topic") ?? "");
-  const [role, setRole] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [withUnknown, setWithUnknown] = useState(true);
-  const [moreFilters, setMoreFilters] = useState(false);
+  const [role, setRole] = useState(sp.get("role") ?? "");
+  const [dateFrom, setDateFrom] = useState(sp.get("dateFrom") ?? "");
+  const [dateTo, setDateTo] = useState(sp.get("dateTo") ?? "");
+  const [withUnknown, setWithUnknown] = useState(sp.get("includeUnknownDate") !== "0");
+  const [moreFilters, setMoreFilters] = useState(!!(sp.get("role") || sp.get("dateFrom") || sp.get("dateTo")));
   const [hits, setHits] = useState<Hits | null>(null);
   const [searched, setSearched] = useState("");
   const [answer, setAnswer] = useState<Record<string, any> | null>(null);
   const act = useAction();
+  const searchSerial = useRef(0);
 
   async function search(page = 1, query = q) {
+    const serial = ++searchSerial.current;
     const params = new URLSearchParams({ q: query, page: String(page) });
     if (topicId) params.set("topicId", topicId);
     if (role) params.set("role", role);
@@ -42,11 +44,11 @@ export function AnswerPage() {
     if (dateTo) params.set("dateTo", dateTo);
     if (dateFrom || dateTo) params.set("includeUnknownDate", withUnknown ? "1" : "0");
     const d = await act.run(() => get(`/api/search?${params.toString()}`));
-    if (d) {
+    if (d && serial === searchSerial.current) {
       setHits(d);
       setSearched(query);
-      const next = new URLSearchParams(sp);
-      next.set("q", query);
+      const next = new URLSearchParams(params);
+      next.delete("topicId");
       if (topicId) next.set("topic", topicId);
       else next.delete("topic");
       setSp(next, { replace: true });
@@ -55,10 +57,12 @@ export function AnswerPage() {
 
   useEffect(() => {
     const initial = sp.get("q");
-    if (initial) void search(1, initial);
+    const page = Number(sp.get("page") ?? 1);
+    if (initial) void search(Number.isInteger(page) && page > 0 ? page : 1, initial);
+    return () => { searchSerial.current++; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const from = `/answers?${new URLSearchParams({ q: searched, ...(topicId ? { topic: topicId } : {}) }).toString()}`;
+  const from = `/answers?${sp.toString()}`;
   const points = answer?.points_json ? (JSON.parse(answer.points_json) as { points: Point[]; conflicts: string[]; insufficient: boolean; missing: string | null; note: string | null }) : null;
 
   return (
@@ -141,7 +145,7 @@ export function AnswerPage() {
                         <li className="cite" key={j}>
                           <blockquote>{s.quote}</blockquote>
                           <div className="cite-meta">
-                            <Link to={`/sources/${s.sourceId}?msg=${s.messageId}&quote=${encodeURIComponent(s.quote)}&from=${encodeURIComponent(from)}`}>{s.sourceTitle}</Link>
+                            <Link to={`/sources/${s.sourceId}?msg=${s.messageId}&quote=${encodeURIComponent(s.quote)}${Number.isInteger(s.startCp) && Number.isInteger(s.endCp) ? `&startCp=${s.startCp}&endCp=${s.endCp}` : ""}&from=${encodeURIComponent(from)}`}>{s.sourceTitle}</Link>
                             <span>{sourceDate(s.sourceDate)}</span>
                             <span>{roleLabel(s.role)}说的</span>
                           </div>

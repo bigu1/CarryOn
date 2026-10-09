@@ -57,7 +57,12 @@ export function ImportPage() {
         errs.push(`${f.name} 超过单文件 5 MiB，没有加入（不会截断）`);
         continue;
       }
-      next.push({ name: f.name, text: await f.text(), asWhole: false });
+      try {
+        const text = new TextDecoder("utf-8", { fatal: true }).decode(await f.arrayBuffer());
+        next.push({ name: f.name, text, asWhole: false });
+      } catch {
+        errs.push(`${f.name} 不是有效 UTF-8 文本，没有加入；请转换编码后重试`);
+      }
     }
     setFileErr(errs.join("；"));
     setFiles((prev) => [...prev.filter((p) => !next.some((n) => n.name === p.name)), ...next]);

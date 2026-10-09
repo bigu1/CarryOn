@@ -9,6 +9,8 @@ export type Citation = {
   message_id: string;
   revision_id?: string;
   quote: string;
+  start_cp?: number;
+  end_cp?: number;
   source_title?: string | null;
   source_occurred_at?: string | null;
   message_role?: string | null;
@@ -54,7 +56,8 @@ export function CardBadges({ card }: { card: CardData }) {
 
 export function citationHref(x: Citation, from: string) {
   const rev = x.status === "historical" && x.revision_id ? `&revision=${x.revision_id}` : "";
-  return `/sources/${x.source_id}?msg=${x.message_id}&quote=${encodeURIComponent(x.quote)}${rev}&from=${encodeURIComponent(from)}`;
+  const position = Number.isInteger(x.start_cp) && Number.isInteger(x.end_cp) ? `&startCp=${x.start_cp}&endCp=${x.end_cp}` : "";
+  return `/sources/${x.source_id}?msg=${x.message_id}&quote=${encodeURIComponent(x.quote)}${position}${rev}&from=${encodeURIComponent(from)}`;
 }
 
 export function CitationList({ citations, from }: { citations: Citation[]; from: string }) {

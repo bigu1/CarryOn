@@ -551,6 +551,7 @@ function applyExtract(
       };
       const loc = locateQuote(segment, ev.quote);
       if (!loc) throw new Error("引用错位，未入库");
+      if (locateQuote(segment, ev.quote, 1)) throw new Error("摘录在同一段重复出现，无法确定引用位置，未入库；请使用更完整的摘录");
       const cite = {
         sourceId: segment.sourceId,
         revisionId: segment.revisionId,
@@ -596,19 +597,20 @@ function applyAnswer(
   plan: SendPlan,
   sentIds: Set<string>,
 ): { error: string } | { id: string; error?: undefined; [k: string]: unknown } {
-  const obj = parsed as {
-    points?: Array<{ text?: string; kind?: string; support?: Array<{ messageId?: string; quote?: string }> }>;
-    insufficient?: boolean;
-    missing?: string;
-    conflicts?: string[];
-  };
-  if (obj.points !== undefined && !Array.isArray(obj.points)) return { error: "回答结构无效，未保存" };
+  const checked = z.object({
+    points: z.array(z.object({ text: z.string().min(1), kind: z.string().optional(),
+      support: z.array(z.object({ messageId: z.string().min(1), quote: z.string().min(1) })).min(1),
+    })).optional(),
+    insufficient: z.boolean().optional(), missing: z.string().optional(), conflicts: z.array(z.string()).optional(),
+  }).safeParse(parsed);
+  if (!checked.success) return { error: "回答结构无效，未保存" };
+  const obj = checked.data;
   if (!obj.points && !obj.insufficient) return { error: "回答结构无效，未保存" };
   const points: Array<{
     text: string;
     kind: string;
     kindLabel: string;
-    support: Array<{ messageId: string; sourceId: string; sourceTitle: string; sourceDate: string | null; role: string; quote: string }>;
+    support: Array<{ messageId: string; sourceId: string; sourceTitle: string; sourceDate: string | null; role: string; quote: string; startCp: number; endCp: number }>;
   }> = [];
   for (const p of obj.points ?? []) {
     if (!p.text) continue;
@@ -618,7 +620,11 @@ function applyAnswer(
       const msg = st.getMessage(s.messageId);
       if (!msg) return { error: "回答引用不存在，未保存" };
       if (!sentIds.has(s.messageId)) return { error: "回答引用越范围，未保存" };
-      if (!String(msg.text).includes(s.quote)) return { error: "回答引用与原文不一致，未保存" };
+      const segment = { id: String(msg.id), sourceId: String(msg.source_id), revisionId: String(msg.revision_id),
+        text: String(msg.text), startCp: Number(msg.start_cp), endCp: Number(msg.end_cp) };
+      const loc = locateQuote(segment, s.quote);
+      if (!loc) return { error: "回答引用与原文不一致，未保存" };
+      if (locateQuote(segment, s.quote, 1)) return { error: "回答摘录在同一段重复出现，无法确定位置，未保存；请使用更完整的摘录" };
       const src = st.getSource(String(msg.source_id));
       support.push({
         messageId: s.messageId,
@@ -627,6 +633,8 @@ function applyAnswer(
         sourceDate: (src?.occurred_at as string | null) ?? null,
         role: String(msg.role),
         quote: s.quote,
+        startCp: loc.startCp,
+        endCp: loc.endCp,
       });
     }
     if (!support.length) return { error: "事实性要点没有来源，未保存" };

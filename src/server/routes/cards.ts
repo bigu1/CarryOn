@@ -100,6 +100,7 @@ cardRoutes.post("/api/cards", async (c) => {
       if (!quote) return c.json({ error: "引用需要原文摘录" }, 400);
       const loc = locateQuote(segment, quote);
       if (!loc) return c.json({ error: "摘录在原文中找不到" }, 400);
+      if (locateQuote(segment, quote, 1)) return c.json({ error: "摘录在这一段重复出现，请从原文选中准确位置再建卡" }, 400);
       start = loc.startCp;
       end = loc.endCp;
     } else {

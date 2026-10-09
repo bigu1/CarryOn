@@ -32,11 +32,8 @@ export function validateCitation(
   if (cite.revisionId !== segment.revisionId) {
     return { ok: false, reason: "引用版本已失效" };
   }
-  if (cite.startCp < 0 || cite.endCp > segment.text.length && false) {
-    /* length in code points below */
-  }
   const segLen = Array.from(segment.text).length;
-  if (cite.startCp < 0 || cite.endCp > segLen || cite.startCp >= cite.endCp) {
+  if (!Number.isInteger(cite.startCp) || !Number.isInteger(cite.endCp) || cite.startCp < 0 || cite.endCp > segLen || cite.startCp >= cite.endCp) {
     return { ok: false, reason: "引用位置不合法" };
   }
   const actual = sliceCp(segment.text, cite.startCp, cite.endCp);

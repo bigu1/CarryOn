@@ -13,6 +13,7 @@ if (/:43173(\/|$)/.test(baseURL)) throw new Error("e2e 不得指向 43173");
 export default defineConfig({
   testDir: "tests/e2e",
   workers: 1,
+  preserveOutput: "always",
   timeout: 90_000,
   use: {
     baseURL,

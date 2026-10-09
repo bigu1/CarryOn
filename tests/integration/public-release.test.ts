@@ -17,9 +17,12 @@ describe("公开发布的数据与模型边界", () => {
   async function post(c: ReturnType<typeof testApp>, path: string, body: unknown) {
     return c.req(path, { method: "POST", body: JSON.stringify(body) });
   }
-  async function source(c: ReturnType<typeof testApp>, text = "用户：选择本机版。", title = "合成甲") {
+  async function source(c: ReturnType<typeof testApp>, text = "用户：选择本机版。", title = "合成甲", externalId?: string) {
     await c.session();
-    const pre = await (await post(c, "/api/imports/preview", { paste: text, pasteTitle: title, defaultTopic: "合成主题" })).json();
+    const input = externalId ? { files: [{ name: "synthetic-revision.json", text: JSON.stringify({ schemaVersion: 1,
+      conversations: [{ externalId, title, messages: [{ role: "user", text: text.replace(/^用户：/, "") }] }] }) }], defaultTopic: "合成主题" } :
+      { paste: text, pasteTitle: title, defaultTopic: "合成主题" };
+    const pre = await (await post(c, "/api/imports/preview", input)).json();
     const result = await (await post(c, "/api/imports/confirm", { previewId: pre.preview.id })).json();
     const detail = await (await c.req(`/api/sources/${result.results[0].sourceId}`)).json();
     return detail;
@@ -39,6 +42,75 @@ describe("公开发布的数据与模型边界", () => {
     return (await (await post(c, "/api/cards", { topicId: d.source.topic_id, type: "user_decision", title, body: title,
       citations: [{ messageId: d.messages[0].id, quote: d.messages[0].text }] })).json()).card;
   }
+
+  it("重复中文 emoji 引用保存选中码点，非整数或错位置拒绝", async () => {
+    const c = fresh(); const d = await source(c, "用户：前文😀重复采纳。中间😀重复采纳。后文");
+    const text = d.messages[0].text; const quote = "😀重复采纳";
+    const startCp = Array.from(text.slice(0, text.lastIndexOf(quote))).length;
+    const endCp = startCp + Array.from(quote).length;
+    const body = { topicId: d.source.topic_id, type: "user_decision", title: "第二处", body: "第二处采纳",
+      citations: [{ messageId: d.messages[0].id, quote, startCp, endCp }] };
+    const saved = await post(c, "/api/cards", body); expect(saved.status).toBe(200);
+    const cite = (await saved.json()).card.citations[0];
+    expect(cite.start_cp).toBe(startCp); expect(cite.end_cp).toBe(endCp);
+    expect((await post(c, "/api/cards", { ...body, citations: [{ messageId: d.messages[0].id, quote }] })).status).toBe(400);
+    for (const badStart of [startCp + 0.5, startCp - 1]) {
+      const rejected = await post(c, "/api/cards", { ...body, citations: [{ ...body.citations[0], startCp: badStart }] });
+      expect(rejected.status).toBe(400);
+    }
+  });
+
+  it("模型协议故障逐项拒绝，超时中止且不自动重试", async () => {
+    let hits = 0;
+    const cases: Array<{ status: number; body: string; error: RegExp }> = [
+      { status: 401, body: "private-service-error", error: /认证失败/ },
+      { status: 403, body: "private-service-error", error: /认证失败/ },
+      { status: 429, body: "private-service-error", error: /限流/ },
+      { status: 200, body: "", error: /空响应/ },
+      { status: 200, body: "{broken", error: /不是合法 JSON/ },
+      { status: 200, body: "null", error: /有效文本/ },
+      { status: 200, body: JSON.stringify({ choices: [{ message: { content: 123 } }] }), error: /有效文本/ },
+      { status: 200, body: "x".repeat(LIMITS.modelMaxOutputChars + 1), error: /响应过大/ },
+    ];
+    const s = createServer((_req, res) => {
+      const current = cases[hits++];
+      if (current) res.writeHead(current.status).end(current.body);
+      // 最后一项故意不响应；客户端超时后连接必须中止。
+    }); servers.push(s);
+    await new Promise<void>((r) => s.listen(0, "127.0.0.1", r));
+    const cfg = { baseUrl: `http://127.0.0.1:${(s.address() as AddressInfo).port}`, model: "synthetic-protocol", apiKey: "synthetic-protocol-only" };
+    for (const [i, scenario] of cases.entries()) {
+      await expect(chatCompletions(cfg, [{ role: "user", content: "合成协议检查" }], { timeoutMs: 2000 })).rejects.toThrow(scenario.error);
+      expect(hits).toBe(i + 1);
+    }
+    await expect(chatCompletions(cfg, [{ role: "user", content: "合成超时检查" }], { timeoutMs: 100 })).rejects.toThrow(/超时或已取消/);
+    expect(hits).toBe(cases.length + 1);
+  });
+
+  it("任务级限流最多重试一次，失败不假装完成；重复摘录不写入", async () => {
+    const c = fresh(); const d = await source(c, "用户：前文😀重复采纳。中间😀重复采纳。后文");
+    let mode = "limited"; let hits = 0;
+    await model(c, (raw, res) => {
+      hits++;
+      if (mode === "limited") { res.writeHead(429).end("synthetic-rate-limit"); return; }
+      const kind = JSON.parse(raw).messages[0].content.includes('"claims"') ? "extract" : "answer";
+      reply(res, kind === "extract" ? { claims: [{ type: "user_decision", title: "歧义候选", body: "无法确定是哪处",
+        evidence: [{ messageId: d.messages[0].id, quote: "😀重复采纳" }] }] } :
+        { points: [{ text: "歧义回答", support: [{ messageId: d.messages[0].id, quote: "😀重复采纳" }] }], insufficient: false });
+    });
+    const body = { sourceIds: [d.source.id], question: "重复", confirmSend: true };
+    const failed = await post(c, "/api/ai/answer", body);
+    expect(failed.status).toBe(502); expect(hits).toBe(2);
+    expect((await failed.json()).error).toMatch(/限流/);
+    mode = "ambiguous";
+    const extractResponse = await post(c, "/api/ai/extract", body);
+    expect(extractResponse.status).toBe(502);
+    const extracted = await extractResponse.json();
+    expect(extracted.coverage.failed).toBe(1); expect(extracted.chunkReports[0].reason).toMatch(/重复出现/);
+    const answered = await post(c, "/api/ai/answer", body);
+    expect(answered.status).toBe(502); expect((await answered.json()).error).toMatch(/重复出现/);
+    expect((await (await c.req("/api/cards")).json()).cards).toEqual([]);
+  });
 
   it("空选、失效选择不扩大到全库", async () => {
     const c = fresh(); await source(c);
@@ -71,14 +143,18 @@ describe("公开发布的数据与模型边界", () => {
     const r = await post(c, "/api/ai/answer", { question: "选择乙", previewToken: p.previewToken, confirmSend: true });
     expect(r.status).toBe(409); expect(calls).toBe(0);
   });
-  it.each(["role", "delete"])("%s 后迟到的提炼响应不能写回", async (change) => {
-    const c = fresh(); const d = await source(c);
+  it.each(["role", "delete", "revision"])("%s 后迟到的提炼响应不能写回", async (change) => {
+    const c = fresh(); const d = await source(c, "用户：选择本机版。", "合成修订", "synthetic-late-source");
     let release!: () => void; let arrived!: () => void;
     const ready = new Promise<void>((r) => arrived = r);
     await model(c, (_, res) => { release = () => reply(res, { claims: [{ type: "user_decision", title: "迟到决定", body: "选择本机版", evidence: [{ messageId: d.messages[0].id, quote: "选择本机版" }] }] }); arrived(); });
     const pending = post(c, "/api/ai/extract", { sourceIds: [d.source.id], confirmSend: true });
     await ready;
-    await c.req(`/api/sources/${d.source.id}`, { method: change === "role" ? "PATCH" : "DELETE",
+    if (change === "revision") {
+      const revised = await source(c, "用户：改用乙方案。", "合成修订", "synthetic-late-source");
+      expect(revised.source.id).toBe(d.source.id);
+      expect(revised.source.current_revision_id).not.toBe(d.source.current_revision_id);
+    } else await c.req(`/api/sources/${d.source.id}`, { method: change === "role" ? "PATCH" : "DELETE",
       body: change === "role" ? JSON.stringify({ messages: [{ id: d.messages[0].id, role: "assistant" }] }) : undefined });
     release(); expect((await pending).status).toBe(change === "delete" ? 400 : 409);
     expect((await (await c.req("/api/cards")).json()).cards).toEqual([]);

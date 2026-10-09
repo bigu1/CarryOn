@@ -122,8 +122,8 @@ export async function chatCompletions(
     } catch {
       throw new Error("模型返回不是合法 JSON");
     }
-    const text = data.choices?.[0]?.message?.content;
-    if (!text) throw new Error("模型返回缺少内容");
+    const text = data && Array.isArray(data.choices) ? data.choices[0]?.message?.content : undefined;
+    if (typeof text !== "string" || !text.trim()) throw new Error("模型返回缺少有效文本内容");
     return { text, model: data.model ?? cfg.model };
   } catch (e) {
     if (e instanceof Error && e.name === "AbortError") throw new Error("模型调用超时或已取消");
