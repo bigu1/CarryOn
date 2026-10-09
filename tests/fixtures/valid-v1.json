@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "conversations": [
+    {
+      "externalId": "fixture-valid",
+      "title": "合法样例",
+      "source": "manual",
+      "occurredAt": "2026-09-01",
+      "messages": [
+        { "externalId": "fv-1", "role": "user", "text": "第一版先只在本机使用。", "occurredAt": null }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xushang.local/schemas/json-v1.schema.json",
+  "title": "续上 JSON v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schemaVersion", "conversations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "conversations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["title", "messages"],
+        "properties": {
+          "externalId": { "type": ["string", "null"] },
+          "title": { "type": "string", "minLength": 1 },
+          "source": { "type": "string" },
+          "occurredAt": { "type": ["string", "null"] },
+          "messages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["role", "text"],
+              "properties": {
+                "externalId": { "type": ["string", "null"] },
+                "role": { "type": "string" },
+                "text": { "type": "string" },
+                "occurredAt": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

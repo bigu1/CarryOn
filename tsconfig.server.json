@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["src/server", "src/domain", "src/importers", "src/search", "src/ai", "src/storage", "src/shared"]
+}

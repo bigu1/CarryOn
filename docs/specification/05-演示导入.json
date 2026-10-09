@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "conversations": [
+    {
+      "externalId": "E01-conversation",
+      "title": "演示资料：AI建议尚未采纳",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E01-m1",
+          "role": "user",
+          "text": "资料工具可以怎么做？",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E01-m2",
+          "role": "assistant",
+          "text": "我建议第一版加入云同步。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E01-m3",
+          "role": "user",
+          "text": "我先想想，暂时没有决定。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E02-conversation",
+      "title": "演示资料：明确采纳但仍需审核",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E02-m1",
+          "role": "assistant",
+          "text": "选项甲是本地保存，选项乙是云同步。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E02-m2",
+          "role": "user",
+          "text": "第一版采用选项甲，只保存在这台电脑上。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E04-conversation",
+      "title": "演示资料：后来改变主意",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E04-m1",
+          "role": "user",
+          "text": "先采用云同步方案。",
+          "occurredAt": "2026-09-01T10:00:00+08:00"
+        },
+        {
+          "externalId": "E04-m2",
+          "role": "user",
+          "text": "我改主意了，首版改成本地保存，替代之前的云同步决定。",
+          "occurredAt": "2026-09-05T10:00:00+08:00"
+        }
+      ]
+    },
+    {
+      "externalId": "E08-conversation",
+      "title": "演示资料：测试通过仅为说法",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E08-m1",
+          "role": "assistant",
+          "text": "我认为全部测试已经通过，可以交付了。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E08-m2",
+          "role": "user",
+          "text": "先把日志和实际测试结果给我，我还没有验收。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E09-conversation",
+      "title": "演示资料：日期未知不能用导入时间代替",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E09-m1",
+          "role": "user",
+          "text": "上次的会议暂定在周五，后面可能还会改。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E11-conversation",
+      "title": "演示资料：中文短词与精确引用",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E11-m1",
+          "role": "user",
+          "text": "我需要买菜。今天想做番茄炒蛋。🍅 这句要能准确定位。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E11-m2",
+          "role": "assistant",
+          "text": "先看看冰箱里有没有鸡蛋。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E11-m3",
+          "role": "user",
+          "text": "我需要买菜。上一句和这一句重复，但这次是周末采购。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E15-conversation",
+      "title": "演示资料：问题仍未解决",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E15-m1",
+          "role": "user",
+          "text": "恢复备份时报错，能帮我看看吗？",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E15-m2",
+          "role": "assistant",
+          "text": "可能是版本不一致，你可以试试导出旧格式。",
+          "occurredAt": null
+        },
+        {
+          "externalId": "E15-m3",
+          "role": "user",
+          "text": "我试了还是失败，没有解决。",
+          "occurredAt": null
+        }
+      ]
+    },
+    {
+      "externalId": "E16-conversation",
+      "title": "演示资料：资料中没有答案",
+      "source": "synthetic",
+      "occurredAt": null,
+      "messages": [
+        {
+          "externalId": "E16-m1",
+          "role": "user",
+          "text": "上次我们只讨论了字体大小，还没有谈部署地点。",
+          "occurredAt": null
+        }
+      ]
+    }
+  ]
+}
